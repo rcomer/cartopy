@@ -60,11 +60,13 @@ def _interpolate_to_grid(nx, ny, x, y, *scalars, **kwargs):
 
     s_grid_tuple = tuple()
     for s in scalars:
-        s_grid = _regrid_scalar(s)
         if ma.is_masked(s):
-            # griddata ignores mask so we need to add it back.
-            mask = _regrid_scalar(s.mask.astype(np.float_))
-            s_grid = ma.array(s_grid, mask=mask)
+            # griddata ignores mask, so fill with nans and re-mask after.
+            s_grid = _regrid_scalar(s.filled(np.nan))
+            s_grid = ma.masked_invalid(s_grid)
+        else:
+            s_grid = _regrid_scalar(s)
+
         s_grid_tuple += (s_grid,)
 
     return (x_grid * xr + x0, y_grid * yr + y0) + s_grid_tuple

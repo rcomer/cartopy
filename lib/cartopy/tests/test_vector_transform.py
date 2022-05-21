@@ -94,15 +94,15 @@ class Test_interpolate_to_grid:
         assert_array_almost_equal(s_grid3, expected_s_grid)
 
     def test_preserve_mask(self):
+        # Check that interpolation of masked data results in a masked array and
+        # that masked points match output nan points when interpolating
+        # nan-filled array.
         s_masked = ma.array(self.s, mask=[1, 0, 0, 0, 0, 0])
         s_nan = self.s.copy()
         s_nan[0] = np.nan
 
         _, _, s_grid_masked, s_grid_nan = vec_trans._interpolate_to_grid(
             5, 3, self.x, self.y, s_masked, s_nan)
-
-        print(s_grid_masked)
-        print(s_grid_nan)
 
         assert ma.is_masked(s_grid_masked)
         np.testing.assert_array_equal(np.isnan(s_grid_nan), s_grid_masked.mask)
