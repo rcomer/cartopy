@@ -5,6 +5,7 @@
 # licensing details.
 
 import numpy as np
+import numpy.ma as ma
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 import cartopy.vector_transform as vec_trans
@@ -91,6 +92,20 @@ class Test_interpolate_to_grid:
         assert_array_almost_equal(s_grid1, expected_s_grid)
         assert_array_almost_equal(s_grid2, expected_s_grid)
         assert_array_almost_equal(s_grid3, expected_s_grid)
+
+    def test_preserve_mask(self):
+        s_masked = ma.array(self.s, mask=[1, 0, 0, 0, 0, 0])
+        s_nan = self.s.copy()
+        s_nan[0] = np.nan
+
+        _, _, s_grid_masked, s_grid_nan = vec_trans._interpolate_to_grid(
+            5, 3, self.x, self.y, s_masked, s_nan)
+
+        print(s_grid_masked)
+        print(s_grid_nan)
+
+        assert ma.is_masked(s_grid_masked)
+        np.testing.assert_array_equal(np.isnan(s_grid_nan), s_grid_masked.mask)
 
 
 class Test_vector_scalar_to_grid:

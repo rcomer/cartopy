@@ -10,6 +10,7 @@ transforms.
 """
 
 import numpy as np
+import numpy.ma as ma
 try:
     from scipy.interpolate import griddata
 except ImportError as e:
@@ -52,10 +53,20 @@ def _interpolate_to_grid(nx, ny, x, y, *scalars, **kwargs):
     points = np.column_stack([(x.ravel() - x0) / xr, (y.ravel() - y0) / yr])
     x_grid, y_grid = np.meshgrid(np.linspace(0, 1, nx),
                                  np.linspace(0, 1, ny))
+
+    def _regrid_scalar(scalar):
+        return griddata(points, scalar.ravel(), (x_grid, y_grid),
+                        method='linear')
+
     s_grid_tuple = tuple()
     for s in scalars:
-        s_grid_tuple += (griddata(points, s.ravel(), (x_grid, y_grid),
-                                  method='linear'),)
+        s_grid = _regrid_scalar(s)
+        if ma.is_masked(s):
+            # griddata ignores mask so we need to add it back.
+            mask = _regrid_scalar(s.mask.astype(np.float_))
+            s_grid = ma.array(s_grid, mask=mask)
+        s_grid_tuple += (s_grid,)
+
     return (x_grid * xr + x0, y_grid * yr + y0) + s_grid_tuple
 
 
