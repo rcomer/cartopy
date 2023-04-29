@@ -3,8 +3,13 @@
 # This file is part of Cartopy and is released under the LGPL license.
 # See COPYING and COPYING.LESSER in the root of the repository for full
 # licensing details.
+import matplotlib as mpl
 from matplotlib.collections import QuadMesh
 import numpy as np
+import packaging
+
+
+_MPL_VERSION = packaging.version.parse(mpl.__version__)
 
 
 class GeoQuadMesh(QuadMesh):
@@ -21,7 +26,8 @@ class GeoQuadMesh(QuadMesh):
         A = super().get_array().copy()
         # If the input array has a mask, retrieve the associated data
         if hasattr(self, '_wrapped_mask'):
-            A[self._wrapped_mask] = self._wrapped_collection_fix.get_array()
+            A[self._wrapped_mask] = np.ma.compressed(
+                self._wrapped_collection_fix.get_array())
         return A
 
     def set_array(self, A):
@@ -34,7 +40,10 @@ class GeoQuadMesh(QuadMesh):
         # Only use the mask attribute if it is there.
         if hasattr(self, '_wrapped_mask'):
             # Update the pcolor data with the wrapped masked data
-            self._wrapped_collection_fix.set_array(A[self._wrapped_mask])
+            if _MPL_VERSION.release < (3, 8):
+                self._wrapped_collection_fix.set_array(A[self._wrapped_mask])
+            else:
+                self._wrapped_collection_fix.set_array(A)
             # If the input array was a masked array, keep that data masked
             if hasattr(A, 'mask'):
                 A = np.ma.array(A, mask=self._wrapped_mask | A.mask)

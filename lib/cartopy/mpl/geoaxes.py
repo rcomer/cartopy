@@ -45,7 +45,8 @@ import cartopy.mpl.patch as cpatch
 from cartopy.mpl.slippy_image_artist import SlippyImageArtist
 
 
-assert packaging.version.parse(mpl.__version__).release[:2] >= (3, 4), \
+_MPL_VERSION = packaging.version.parse(mpl.__version__)
+assert _MPL_VERSION.release >= (3, 4), \
     'Cartopy is only supported with Matplotlib 3.4 or greater.'
 
 # A nested mapping from path, source CRS, and target projection to the
@@ -1959,9 +1960,13 @@ class GeoAxes(matplotlib.axes.Axes):
         # Now add back in the masked data if there was any
         full_mask = ~mask if C_mask is None else ~mask | C_mask
         pcolor_data = np.ma.array(C, mask=full_mask)
-        # The pcolor_col is now possibly shorter than the
-        # actual collection, so grab the masked cells
-        pcolor_col.set_array(pcolor_data[mask].ravel())
+
+        if _MPL_VERSION.release[:2] < (3, 8):
+            # The pcolor_col is now possibly shorter than the
+            # actual collection, so grab the masked cells
+            pcolor_col.set_array(pcolor_data[mask].ravel())
+        else:
+            pcolor_col.set_array(pcolor_data)
 
         pcolor_col.set_cmap(cmap)
         pcolor_col.set_norm(norm)
