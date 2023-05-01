@@ -6,6 +6,7 @@
 
 import re
 
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -240,10 +241,19 @@ def test_cursor_values():
                      r.encode('ascii', 'ignore'))
 
 
+SKIP_PRE_MPL38 = pytest.mark.skipif(
+    MPL_VERSION.release[:2] < (3, 8), reason='mpl < 3.8')
+PARAMETRIZE_PCOLORMESH_WRAP = pytest.mark.parametrize(
+    'as_rgba',
+    [False, pytest.param(True, marks=SKIP_PRE_MPL38)],
+    ids=['standard', 'rgba'])
+
+
+@PARAMETRIZE_PCOLORMESH_WRAP
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(filename='pcolormesh_global_wrap1.png',
                                tolerance=1.27)
-def test_pcolormesh_global_with_wrap1():
+def test_pcolormesh_global_with_wrap1(as_rgba):
     # make up some realistic data with bounds (such as data from the UM)
     nx, ny = 36, 18
     xbnds = np.linspace(0, 360, nx, endpoint=True)
@@ -253,6 +263,11 @@ def test_pcolormesh_global_with_wrap1():
     data = np.exp(np.sin(np.deg2rad(x)) + np.cos(np.deg2rad(y)))
     data = data[:-1, :-1]
     fig = plt.figure()
+
+    if as_rgba:
+        cmap = plt.get_cmap()
+        norm = mcolors.Normalize()
+        data = cmap(norm(data))
 
     ax = fig.add_subplot(2, 1, 1, projection=ccrs.PlateCarree())
     ax.pcolormesh(xbnds, ybnds, data, transform=ccrs.PlateCarree(), snap=False)
@@ -319,10 +334,11 @@ def test_pcolormesh_get_array_with_mask():
         'Data supplied does not match data retrieved in unwrapped case'
 
 
+@PARAMETRIZE_PCOLORMESH_WRAP
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(filename='pcolormesh_global_wrap2.png',
                                tolerance=1.87)
-def test_pcolormesh_global_with_wrap2():
+def test_pcolormesh_global_with_wrap2(as_rgba):
     # make up some realistic data with bounds (such as data from the UM)
     nx, ny = 36, 18
     xbnds, xstep = np.linspace(0, 360, nx - 1, retstep=True, endpoint=True)
@@ -337,6 +353,11 @@ def test_pcolormesh_global_with_wrap2():
     data = data[:-1, :-1]
     fig = plt.figure()
 
+    if as_rgba:
+        cmap = plt.get_cmap()
+        norm = mcolors.Normalize()
+        data = cmap(norm(data))
+
     ax = fig.add_subplot(2, 1, 1, projection=ccrs.PlateCarree())
     ax.pcolormesh(xbnds, ybnds, data, transform=ccrs.PlateCarree(), snap=False)
     ax.coastlines()
@@ -350,10 +371,11 @@ def test_pcolormesh_global_with_wrap2():
     return fig
 
 
+@PARAMETRIZE_PCOLORMESH_WRAP
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(filename='pcolormesh_global_wrap3.png',
                                tolerance=1.42)
-def test_pcolormesh_global_with_wrap3():
+def test_pcolormesh_global_with_wrap3(as_rgba):
     nx, ny = 33, 17
     xbnds = np.linspace(-1.875, 358.125, nx, endpoint=True)
     ybnds = np.linspace(91.25, -91.25, ny, endpoint=True)
@@ -370,6 +392,11 @@ def test_pcolormesh_global_with_wrap3():
     data = data[:-1, :-1]
     data = np.ma.masked_greater(data, 2.6)
     fig = plt.figure()
+
+    if as_rgba:
+        cmap = plt.get_cmap()
+        norm = mcolors.Normalize()
+        data = cmap(norm(data))
 
     ax = fig.add_subplot(3, 1, 1, projection=ccrs.PlateCarree(-45))
     c = ax.pcolormesh(xbnds, ybnds, data, transform=ccrs.PlateCarree(),

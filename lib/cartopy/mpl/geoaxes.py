@@ -1911,10 +1911,10 @@ class GeoAxes(matplotlib.axes.Axes):
             gmask[:-1, 1:] |= mask
             mask = gmask
 
-        # We have quadrilaterals that cross the wrap boundary
-        # Now, we need to update the original collection with
-        # a mask over those cells and use pcolor to draw those
-        # cells instead, which will properly handle the wrap.
+        # We have quadrilaterals that cross the wrap boundary. Now, we need to
+        # update the original collection with a mask (or alpha=0 for RGBA) over
+        # those cells and use pcolor to draw those cells instead, which will
+        # properly handle the wrap.
 
         if collection.get_cmap()._rgba_bad[3] != 0.0:
             warnings.warn("The colormap's 'bad' has been set, but "
@@ -1922,13 +1922,28 @@ class GeoAxes(matplotlib.axes.Axes):
                           "map it must be fully transparent.",
                           stacklevel=3)
 
-        # The original data mask (regardless of wrapped cells)
-        C_mask = getattr(C, 'mask', None)
+        if C.ndim == 3:
+            # RGB(A) array.
+            if _MPL_VERSION.release < (3, 8):
+                raise ValueError(
+                    "GeoQuadMesh wrapping requires Matplotlib v3.8 or later")
+            pcolormesh_data = C.copy()
+            pcolormesh_data[mask, -1] = 0  # TODO: add trailing dim for RGB
+            collection.set_array(pcolormesh_data)
 
-        # create the masked array to be used with this pcolormesh
-        full_mask = mask if C_mask is None else mask | C_mask
-        pcolormesh_data = np.ma.array(C, mask=full_mask)
-        collection.set_array(pcolormesh_data.ravel())
+            # mask needs an extra trailing dimension.
+            mask = np.broadcast_to(mask[:, :, np.newaxis], C.shape)
+            C_mask = None
+
+        else:
+
+            # The original data mask (regardless of wrapped cells)
+            C_mask = getattr(C, 'mask', None)
+
+            # create the masked array to be used with this pcolormesh
+            full_mask = mask if C_mask is None else mask | C_mask
+            pcolormesh_data = np.ma.array(C, mask=full_mask)
+            collection.set_array(pcolormesh_data.ravel())
 
         # plot with slightly lower zorder to avoid odd issue
         # where the main plot is obscured
