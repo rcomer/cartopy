@@ -1922,24 +1922,31 @@ class GeoAxes(matplotlib.axes.Axes):
                           "map it must be fully transparent.",
                           stacklevel=3)
 
+        # The original data mask (regardless of wrapped cells)
+        C_mask = getattr(C, 'mask', None)
         if C.ndim == 3:
             # RGB(A) array.
             if _MPL_VERSION.release < (3, 8):
                 raise ValueError(
                     "GeoQuadMesh wrapping requires Matplotlib v3.8 or later")
-            pcolormesh_data = C.copy()
-            pcolormesh_data[mask, -1] = 0  # TODO: add trailing dim for RGB
+            if C.shape[-1] == 3:
+                pcolormesh_data = ma.dstack((C, np.ones(C.shape[:2],
+                                                        dtype=C.dtype)))
+            elif C.shape[-1] == 4:
+                pcolormesh_data = C.copy()
+            else:
+                raise ValueError("Last dimension of 3-dimensional input"
+                                 f" must have length 3 or 4, not {C.shape[-1]}")
+            if C_mask is not None:
+                full_mask = np.any(C_mask, axis=-1)
+                full_mask |= mask
+            else:
+                full_mask = mask
+            pcolormesh_data[full_mask, -1] = 0
             collection.set_array(pcolormesh_data)
-
-            # mask needs an extra trailing dimension.
-            mask = np.broadcast_to(mask[:, :, np.newaxis], C.shape)
-            C_mask = None
-
+            # mask will need an extra trailing dimension later
+            mask = np.broadcast_to(mask[..., np.newaxis], C.shape)
         else:
-
-            # The original data mask (regardless of wrapped cells)
-            C_mask = getattr(C, 'mask', None)
-
             # create the masked array to be used with this pcolormesh
             full_mask = mask if C_mask is None else mask | C_mask
             pcolormesh_data = np.ma.array(C, mask=full_mask)
