@@ -912,7 +912,7 @@ class Projection(CRS, metaclass=ABCMeta):
         if rings:
             multi_line_string = sgeom.MultiLineString(line_strings)
 
-        return rings, multi_line_string
+        return sgeom.GeometryCollection([*rings, multi_line_string])
 
     def _project_multipoint(self, geometry, src_crs):
         geoms = []
@@ -954,7 +954,8 @@ class Projection(CRS, metaclass=ABCMeta):
         rings = []
         multi_lines = []
         for src_ring in [polygon.exterior] + list(polygon.interiors):
-            p_rings, p_mline = self._project_linear_ring(src_ring, src_crs)
+            geom_collection = self._project_linear_ring(src_ring, src_crs)
+            *p_rings, p_mline = geom_collection.geoms
             if p_rings:
                 rings.extend(p_rings)
             if len(p_mline.geoms) > 0:

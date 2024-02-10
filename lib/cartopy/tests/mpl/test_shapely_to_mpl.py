@@ -33,13 +33,13 @@ def test_polygon_interiors():
     patches_native = []
     patches = []
     for geos in cpatch.path_to_geos(pth):
-        for pth in cpatch.geos_to_path(geos):
-            patches.append(mpatches.PathPatch(pth))
+        path = cpatch.geos_to_path(geos)
+        patches.append(mpatches.PathPatch(path))
 
         # buffer by 10 degrees (leaves a small hole in the middle)
         geos_buffered = geos.buffer(10)
-        for pth in cpatch.geos_to_path(geos_buffered):
-            patches_native.append(mpatches.PathPatch(pth))
+        path = cpatch.geos_to_path(geos_buffered)
+        patches_native.append(mpatches.PathPatch(path))
 
     # Set high zorder to ensure the polygons are drawn on top of coastlines.
     collection = PatchCollection(patches_native, facecolor='red', alpha=0.4,
@@ -61,9 +61,8 @@ def test_polygon_interiors():
                  np.array(sgeom.box(1, 8, 2, 9, ccw=False).exterior.coords)]
     poly = sgeom.Polygon(exterior, interiors)
 
-    patches = []
-    for pth in cpatch.geos_to_path(poly):
-        patches.append(mpatches.PathPatch(pth))
+    path = cpatch.geos_to_path(poly)
+    patches = [mpatches.PathPatch(path)]
 
     collection = PatchCollection(patches, facecolor='yellow', alpha=0.4,
                                  transform=ccrs.Geodetic(), zorder=10)

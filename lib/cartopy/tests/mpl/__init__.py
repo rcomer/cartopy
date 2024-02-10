@@ -16,11 +16,9 @@ def show(projection, geometry):
         multi_polygon = geometry
         for polygon in multi_polygon:
             import cartopy.mpl.patch as patch
-            paths = patch.geos_to_path(polygon)
-            for pth in paths:
-                patch = mpatches.PathPatch(pth, edgecolor='none',
-                                           lw=0, alpha=0.2)
-                plt.gca().add_patch(patch)
+            path = patch.geos_to_path(polygon)
+            patch = mpatches.PathPatch(path, edgecolor='none', lw=0, alpha=0.2)
+            plt.gca().add_patch(patch)
             line_string = polygon.exterior
             plt.plot(*zip(*line_string.coords),
                      marker='+', linestyle='-')

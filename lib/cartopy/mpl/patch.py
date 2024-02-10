@@ -76,13 +76,13 @@ def geos_to_path(shape):
     if isinstance(shape, (list, tuple)):
         paths = []
         for shp in shape:
-            paths.extend(geos_to_path(shp))
+            paths.append(geos_to_path(shp))
         return paths
 
     if isinstance(shape, sgeom.LinearRing):
-        return [Path(np.column_stack(shape.xy), closed=True)]
+        return Path(np.column_stack(shape.xy), closed=True)
     elif isinstance(shape, (sgeom.LineString, sgeom.Point)):
-        return [Path(np.column_stack(shape.xy))]
+        return Path(np.column_stack(shape.xy))
     elif isinstance(shape, sgeom.Polygon):
         def poly_codes(poly):
             codes = np.ones(len(poly.xy[0])) * Path.LINETO
@@ -90,22 +90,22 @@ def geos_to_path(shape):
             codes[-1] = Path.CLOSEPOLY
             return codes
         if shape.is_empty:
-            return []
+            return Path(np.empty([0, 2]))
         vertices = np.concatenate([np.array(shape.exterior.xy)] +
                                   [np.array(ring.xy) for ring in
                                    shape.interiors], 1).T
         codes = np.concatenate([poly_codes(shape.exterior)] +
                                [poly_codes(ring) for ring in shape.interiors])
-        return [Path(vertices, codes)]
+        return Path(vertices, codes)
     elif isinstance(shape, (sgeom.MultiPolygon, sgeom.GeometryCollection,
                             sgeom.MultiLineString, sgeom.MultiPoint)):
         paths = []
         for geom in shape.geoms:
-            paths.extend(geos_to_path(geom))
-        return paths
+            paths.append(geos_to_path(geom))
+        return Path.make_compound_path(*paths)
     elif hasattr(shape, '_as_mpl_path'):
         vertices, codes = shape._as_mpl_path()
-        return [Path(vertices, codes)]
+        return Path(vertices, codes)
     else:
         raise ValueError(f'Unsupported shape type {type(shape)}.')
 

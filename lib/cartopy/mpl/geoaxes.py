@@ -1535,7 +1535,7 @@ class GeoAxes(matplotlib.axes.Axes):
         The :data:`.patch` and :data:`.spines['geo']` are updated to match.
 
         """
-        path, = cpatch.geos_to_path(self.projection.boundary)
+        path = cpatch.geos_to_path(self.projection.boundary)
 
         # Get the outline path in terms of self.transData
         proj_to_data = self.projection._as_mpl_transform(self) - self.transData
