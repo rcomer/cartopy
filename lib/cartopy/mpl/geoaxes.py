@@ -622,6 +622,13 @@ class GeoAxes(matplotlib.axes.Axes):
             dataset. Currently can be one of "auto" (default), "110m", "50m",
             and "10m", or a Scaler object.  If "auto" is selected, the
             resolution is defined by `~cartopy.feature.auto_scaler`.
+        transform_full : bool, default=True
+            If True, the complete geometries will be transformed to the map
+            projection.  This is more efficient for interactive panning and
+            zooming because the transformed geometries are reused when the
+            figure is redrawn.  If False, only the intersection of the
+            geometries with the map extent are transformed.  This is more
+            efficient for static figures.
 
         """
         kwargs['edgecolor'] = color
@@ -698,6 +705,13 @@ class GeoAxes(matplotlib.axes.Axes):
         ----------
         feature
             An instance of :class:`~cartopy.feature.Feature`.
+        transform_full : bool, default=True
+            If True, the complete geometries will be transformed to the map
+            projection.  This is more efficient for interactive panning and
+            zooming because the transformed geometries are reused when the
+            figure is redrawn.  If False, only the intersection of the
+            geometries with the map extent are transformed.  This is more
+            efficient for static figures.  Defaults to True.
 
         Returns
         -------
@@ -727,6 +741,13 @@ class GeoAxes(matplotlib.axes.Axes):
             The cartopy CRS in which the provided geometries are defined.
         styler
             A callable that returns matplotlib patch styling given a geometry.
+        transform_full : bool, default=True
+            If True, the complete geometries will be transformed to the map
+            projection.  This is more efficient for interactive panning and
+            zooming because the transformed geometries are reused when the
+            figure is redrawn.  If False, only the intersection of the
+            geometries with the map extent are transformed.  This is more
+            efficient for static figures.
 
         Returns
         -------

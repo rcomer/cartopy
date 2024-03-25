@@ -16,6 +16,7 @@ import matplotlib.artist
 import matplotlib.collections
 import matplotlib.path as mpath
 import numpy as np
+import shapely.geometry as sgeom
 
 import cartopy.feature as cfeature
 from cartopy.mpl import _MPL_38
@@ -83,7 +84,7 @@ class FeatureArtist(matplotlib.collections.Collection):
 
     """
 
-    def __init__(self, feature, **kwargs):
+    def __init__(self, feature, transform_full=True, **kwargs):
         """
         Parameters
         ----------
@@ -92,6 +93,13 @@ class FeatureArtist(matplotlib.collections.Collection):
         styler
             A callable that given a geometry, returns matplotlib styling
             parameters.
+        transform_full
+            If True, the complete geometries will be transformed to the map
+            projection.  This is more efficient for interactive panning and
+            zooming because the transformed geometries are reused when the
+            figure is redrawn.  If False, only the intersection of the
+            geometries with the map extent are transformed.  This is more
+            efficient for static figures.  Defaults to True.
 
         Other Parameters
         ----------------
@@ -104,6 +112,7 @@ class FeatureArtist(matplotlib.collections.Collection):
 
         self._styler = kwargs.pop('styler', None)
         self._kwargs = dict(kwargs)
+        self.transform_full = transform_full
 
         if 'color' in self._kwargs:
             # We want the user to be able to override both face and edge
@@ -183,6 +192,14 @@ class FeatureArtist(matplotlib.collections.Collection):
             # from Natural Earth), only create paths for geometries that are
             # in view.
             geoms = self._feature.intersecting_geometries(extent)
+
+        if not self.transform_full:
+            # Get the intersection of the geometries with the map extent for
+            # efficiency.  A buffer is added to prevent changes in the shape
+            # of geometries near the edge of the map.
+            extent_geom = sgeom.box(extent[0], extent[2],
+                                    extent[1], extent[3]).buffer(5)
+            geoms = [geom.intersection(extent_geom) for geom in geoms]
 
         stylised_paths = {}
         # Make an empty placeholder style dictionary for when styler is not

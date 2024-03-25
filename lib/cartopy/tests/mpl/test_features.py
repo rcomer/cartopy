@@ -18,15 +18,16 @@ if _HAS_PYKDTREE_OR_SCIPY:
 
 @pytest.mark.filterwarnings("ignore:Downloading")
 @pytest.mark.natural_earth
+@pytest.mark.parametrize('transform_full', [False, True])
 @pytest.mark.mpl_image_compare(filename='natural_earth.png')
-def test_natural_earth():
+def test_natural_earth(transform_full):
     ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.add_feature(cfeature.LAND)
-    ax.add_feature(cfeature.OCEAN)
+    ax.add_feature(cfeature.LAND, transform_full=transform_full)
+    ax.add_feature(cfeature.OCEAN, transform_full=transform_full)
     ax.coastlines()
-    ax.add_feature(cfeature.BORDERS, linestyle=':')
-    ax.add_feature(cfeature.LAKES, alpha=0.5)
-    ax.add_feature(cfeature.RIVERS)
+    ax.add_feature(cfeature.BORDERS, linestyle=':', transform_full=transform_full)
+    ax.add_feature(cfeature.LAKES, alpha=0.5, transform_full=transform_full)
+    ax.add_feature(cfeature.RIVERS, transform_full=transform_full)
     ax.set_xlim((-20, 60))
     ax.set_ylim((-40, 40))
     return ax.figure
@@ -44,6 +45,20 @@ def test_natural_earth_custom():
     ax.set_xlim((-26, -12))
     ax.set_ylim((58, 72))
     return ax.figure
+
+
+@pytest.mark.natural_earth
+@pytest.mark.mpl_image_compare(filename='coastlines_intersected.png')
+def test_coastlines_intersected():
+    fig = plt.figure()
+    ax = fig.add_subplot(projection=ccrs.PlateCarree())
+    ax.set_xlim((-20, 60))
+    ax.set_ylim((-40, 40))
+    c = ax.coastlines(transform_full=False)
+    c.set_clip_on(False)  # See exactly which paths we are plotting
+
+    return fig
+
 
 
 @pytest.mark.skipif(not _HAS_PYKDTREE_OR_SCIPY, reason='pykdtree or scipy is required')
