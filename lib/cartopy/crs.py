@@ -935,19 +935,27 @@ class Projection(CRS, metaclass=ABCMeta):
         return sgeom.MultiLineString(geoms)
 
     def _project_multipolygon(self, geometry, src_crs):
+        if src_crs.is_geodetic():
+            is_ccw = True
+        else:
+            is_ccw = geometry.geoms[0].exterior.is_ccw
+            for geom in geometry.geoms:
+                # sanity check
+                assert geom.exterior.is_ccw == is_ccw
         geoms = []
+        orphans = []
         for geom in geometry.geoms:
-            r = self._project_polygon(geom, src_crs)
-            if r:
-                geoms.extend(r.geoms)
-        return sgeom.MultiPolygon(geoms)
+            p, o = self._project_polygon(geom, src_crs, adopt_orphans=False)
+            geoms.extend(p)
+            orphans.extend(o)
+        return self._adopt_orphaned_interiors(geoms, orphans, is_ccw)
 
     def _project_geometry_collection(self, geometry, src_crs):
         return sgeom.GeometryCollection(
             [self.project_geometry(geom, src_crs) for geom in geometry.geoms])
 
 
-    def _project_polygon(self, polygon, src_crs):
+    def _project_polygon(self, polygon, src_crs, adopt_orphans=True):
         """
         Return the projected polygon(s) derived from the given polygon.
 
@@ -978,7 +986,10 @@ class Projection(CRS, metaclass=ABCMeta):
 
         # Resolve all the inside vs. outside rings, and convert to the
         # final MultiPolygon.
-        return self._rings_to_multi_polygon(rings, is_ccw)
+        polygons, orphaned_interiors =  self._rings_to_multi_polygon(rings, is_ccw)
+        if adopt_orphans:
+            return self._adopt_orphaned_interiors(polygons, orphaned_interiors, is_ccw)
+        return polygons, orphaned_interiors
 
     def _attach_lines_to_boundary(self, multi_line_strings, is_ccw):
         """
@@ -1203,6 +1214,10 @@ class Projection(CRS, metaclass=ABCMeta):
                     interior_rings.remove(interior_ring)
             polygon_bits.append((exterior_ring.coords,
                                  [ring.coords for ring in holes]))
+
+        return polygon_bits, interior_rings
+
+    def _adopt_orphaned_interiors(self, polygon_bits, interior_rings, is_ccw):
 
         # Any left over "interior" rings need "inverting" with respect
         # to the boundary.
