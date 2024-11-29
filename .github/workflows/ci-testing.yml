@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    if: github.repository == 'scitools/cartopy'
+    # if: github.repository == 'scitools/cartopy'
 
     runs-on: ${{ matrix.os }}
     strategy:
