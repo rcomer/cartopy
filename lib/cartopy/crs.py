@@ -1088,6 +1088,10 @@ class Projection(CRS, metaclass=ABCMeta):
         def filter_last(t):
             return t.kind or t.data[1] == 'first'
 
+        def euclidean_distance(x1, y1, x2, y2):
+            return math.hypot(x2 - x1, y2 - y1)
+
+
         edge_things = list(filter(filter_last, edge_things))
 
         processed_ls = []
@@ -1116,10 +1120,17 @@ class Projection(CRS, metaclass=ABCMeta):
                 if debug:
                     print('   next_thing:', next_thing)
                 if next_thing.kind:
+                    boundary_point = next_thing.data
+                    if (euclidean_distance(boundary_point.x, boundary_point.y,
+                                           *current_ls.coords[-1]) >
+                        euclidean_distance(*current_ls.coords[0],
+                                           *current_ls.coords[-1])):
+                        print(f'{len(current_ls.coords)=}')
+                        break
+
                     # We've just got a boundary point, add it, and keep going.
                     if debug:
                         print('   adding boundary point')
-                    boundary_point = next_thing.data
                     combined_coords = (list(current_ls.coords) +
                                        [(boundary_point.x, boundary_point.y)])
                     current_ls = sgeom.LineString(combined_coords)
