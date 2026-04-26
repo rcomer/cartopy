@@ -10,6 +10,7 @@ channels:
 dependencies:
   - cython>=3.0
   - numpy>=1.26
+  - matplotlib-base>=3.8
   - shapely>=2.0
   - pyshp>=2.3.1
   - pyproj>=3.6.0
@@ -17,8 +18,6 @@ dependencies:
   # are transformed, which causes some issues. Temporary pin PROJ < 9.8
   # to avoid these for now.
   - proj<9.8
-  # The testing label has the proper version of freetype included
-  - conda-forge/label/testing::matplotlib-base>=3.6
 
   # OWS
   - owslib>=0.29
