@@ -10,7 +10,7 @@ on:
 
 jobs:
   tests:
-    if: github.repository == 'scitools/cartopy'
+    # if: github.repository == 'scitools/cartopy'
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -150,7 +150,7 @@ jobs:
   conda-tests:
     # Tests our environment.yml file and will get the latest PROJ library
     # to test against rather than only the one included in pyproj wheels.
-    if: github.repository == 'scitools/cartopy'
+    # if: github.repository == 'scitools/cartopy'
     name: Conda Tests
     runs-on: ubuntu-latest
     defaults:
