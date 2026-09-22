@@ -8,17 +8,8 @@ assignees: ''
 ---
 
 ### Description
-<!-- Please provide a general introduction to the issue/proposal. -->
+<!-- Please provide a general introduction to the issue. -->
 
-
-<!--
-If you are reporting a bug, attach the *entire* traceback from Python.
-
-If you are proposing an enhancement/new feature, provide links to related articles, reference examples, etc.
-
-If you are asking a question, please ask on StackOverflow and use the cartopy tag. All cartopy
-questions on StackOverflow can be found at https://stackoverflow.com/questions/tagged/cartopy
--->
 
 #### Code to reproduce
 
@@ -27,6 +18,7 @@ questions on StackOverflow can be found at https://stackoverflow.com/questions/t
 ```
 
 #### Traceback
+<!-- Please provide the *entire* traceback from Python. -->
 
 ```
 
