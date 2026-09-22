@@ -1,3 +1,12 @@
+---
+name: "\U0001F41B Bug Report"
+about: Submit a bug report to help us improve Cartopy
+title: '[Bug]: '
+labels: 'Type: Bug'
+assignees: ''
+
+---
+
 ### Description
 <!-- Please provide a general introduction to the issue/proposal. -->
 
